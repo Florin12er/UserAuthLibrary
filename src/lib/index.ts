@@ -1,4 +1,5 @@
 // src/lib/index.ts
+import "../index.css";
 export { ThemeSwitch } from "./components/buttons/ThemeSwitch";
 export { LogoutButton } from "./components/buttons/LogoutButton";
 export { GoogleLoginButton } from "./components/buttons/GoogleButton";
