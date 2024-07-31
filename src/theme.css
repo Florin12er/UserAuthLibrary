@@ -1,0 +1,29 @@
+/* src/themes.css */
+
+/* Light Theme */
+:root {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --accent-color: #4f46e5; /* Default accent color */
+}
+
+body.light {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* Dark Theme */
+body.dark {
+  --bg-color: #1a202c;
+  --text-color: #ffffff;
+  --accent-color: #4f46e5; /* Default accent color */
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* System Theme */
+body.system {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
