@@ -28,26 +28,16 @@ export default {
     resolve({
       preferBuiltins: false,
       browser: true,
-      alias: {
-        events: "events",
-        buffer: "buffer",
-        util: "util",
-        path: "path-browserify",
-        url: "url",
-      },
     }),
     commonjs(),
     typescript({
-      tsconfig: "./tsconfig.app.json",
+      tsconfig: "./tsconfig.json",
       declaration: true,
       declarationDir: "./dist/types",
     }),
     postcss({
       extensions: [".css"],
-      plugins: [
-        tailwindcss("./tailwind.config.js"), // Make sure this path is correct
-        autoprefixer(),
-      ],
+      plugins: [tailwindcss("./tailwind.config.js"), autoprefixer()],
       extract: "styles.css",
       minimize: true,
       modules: false,
@@ -55,12 +45,9 @@ export default {
     url(),
     json(),
     replace({
-      "process.env.VITE_API_URL": JSON.stringify(process.env.VITE_API_URL),
-      "process.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY": JSON.stringify(
-        process.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY,
-      ),
       preventAssignment: true,
+      "process.env.NODE_ENV": JSON.stringify("production"),
     }),
   ],
-  external: ["react", "react-dom", "react-router-dom"],
+  external: ["react", "react-dom", "@heroicons/react", "@headlessui/react"],
 };

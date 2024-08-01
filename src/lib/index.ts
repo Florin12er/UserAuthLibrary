@@ -8,3 +8,4 @@ export { LoginForm } from "./components/LoginForm/LoginForm";
 export { RegisterForm } from "./components/RegisterForm/RegisterForm";
 export { ResetPasswordForm } from "./components/ResetPasswordForm/ResetPasswordForm";
 export { ResetRequestForm } from "./components/ResetRequestForm/ResetRequestForm";
+export { AuthModal } from "./components/modal/AuthModal";
