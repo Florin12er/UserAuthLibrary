@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import Modal from "./Modal";
 import ResetPasswordForm from "./ResetPassword";
 import ProfileForm from "./ProfileForm";
@@ -11,17 +10,11 @@ import UserProfileButton from "./UserProfileButton";
 
 interface AuthModalProps {
   accent: "indigo" | "blue" | "green" | "red" | "purple" | "zinc";
-  size: "xs" | "sm" | "md" | "lg" | "xl";
+  size: "xs" | "sm" | "md" | "lg" | "xl" | "mid";
   buttonLabel: string;
   showGitHubLogin?: boolean;
   showGoogleLogin?: boolean;
-}
-
-interface Profile {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
+  apiUrl?: string;
 }
 
 interface Passwords {
@@ -36,6 +29,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   buttonLabel,
   showGitHubLogin = false,
   showGoogleLogin = false,
+  apiUrl = "http://localhost:8080/login",
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentForm, setCurrentForm] = useState<string>("login");
@@ -43,9 +37,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [activeTab, setActiveTab] = useState<"profile" | "security">("profile");
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("token");
     if (token) {
       setIsLoggedIn(true);
       setUsername("User");
@@ -55,7 +50,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleLoginSuccess = (token: string) => {
     console.log("Login successful. Token:", token);
-    localStorage.setItem("authToken", token);
+    localStorage.setItem("token", token);
     setIsLoggedIn(true);
     setUsername("User");
     setEmail("user@example.com");
@@ -63,7 +58,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
+    localStorage.removeItem("token");
     setIsLoggedIn(false);
     setUsername("");
     setEmail("");
@@ -76,12 +71,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleRegisterSuccess = () => {
     console.log("Registration successful");
+    setRegistrationSuccess(true);
     setCurrentForm("login");
   };
 
   const handleSwitchForm = (form: string) => {
     setCurrentForm(form);
   };
+
   const handleSaveProfile = (profile: {
     firstName: string;
     lastName: string;
@@ -118,6 +115,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setTimeout(() => setCurrentForm("login"), 300); // Delay resetting the form
   };
 
+  const handleRegistrationSuccessAcknowledged = () => {
+    setRegistrationSuccess(false);
+  };
+
   return (
     <div className="relative">
       <div className="absolute top-4 right-4">
@@ -150,6 +151,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             showGoogleLogin={showGoogleLogin}
             accent={accent}
             size={size}
+            registrationSuccess={registrationSuccess}
+            onRegistrationSuccessAcknowledged={
+              handleRegistrationSuccessAcknowledged
+            }
+            apiUrl={apiUrl}
           />
         )}
         {currentForm === "register" && (

@@ -1,7 +1,9 @@
+import { AuthModal } from "./lib";
+
 const App = () => {
   return (
     <>
-      <div>test</div>
+      <AuthModal accent="red" size="md" buttonLabel="button" />
     </>
   );
 };

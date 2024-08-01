@@ -1,4 +1,3 @@
-// src/components/ResetRequestForm.tsx
 import React, { useState } from "react";
 import axios from "axios";
 import { InputField } from "../parts/InputField";
@@ -7,11 +6,17 @@ import { SubmitButton } from "../parts/SubmitButton";
 import { EnvelopeIcon } from "@heroicons/react/24/solid";
 
 interface ResetRequestFormProps {
+  onSwitchToLogin: () => void;
+  onSwitchToResetPassword: () => void;
+  onClose: () => void;
   accent: "indigo" | "blue" | "green" | "red" | "purple" | "zinc";
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "mid";
 }
 
-export const ResetRequestForm: React.FC<ResetRequestFormProps> = ({
+const ResetRequestForm: React.FC<ResetRequestFormProps> = ({
+  onSwitchToLogin,
+  onSwitchToResetPassword,
+  onClose,
   accent,
   size = "md",
 }) => {
@@ -44,12 +49,11 @@ export const ResetRequestForm: React.FC<ResetRequestFormProps> = ({
 
     try {
       const response = await axios.post(
-        `${process.env.VITE_API_URL}/reset-request`,
-        {
-          email,
-        },
+        `${import.meta.env.VITE_API_URL}/reset-request`,
+        { email },
       );
       setMessage(response.data.message);
+      onSwitchToResetPassword();
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         setError(err.response.data.error || "Failed to send reset email");
@@ -69,64 +73,80 @@ export const ResetRequestForm: React.FC<ResetRequestFormProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div
-        className={`${sizeClasses[size]} w-full bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg space-y-8`}
+    <div
+      className={`relative ${sizeClasses[size]} w-full bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg space-y-8`}
+    >
+      <button
+        className="absolute top-2 right-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
+        onClick={onClose}
       >
-        <div className="text-center">
-          <EnvelopeIcon
-            className={`mx-auto h-12 w-auto text-${accent}-600 dark:text-${accent}-400`}
-          />
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-            Reset your password
-          </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            Enter your email address to receive a reset code.
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <InputField
-              id="email"
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(value) => {
-                setEmail(value);
-                validateEmail(value);
-              }}
-              icon={
-                <EnvelopeIcon
-                  className={`h-5 w-5 text-${accent}-500 dark:text-${accent}-400`}
-                  aria-hidden="true"
-                />
-              }
-              accent={accent}
-              error={emailError}
-              autoComplete="email"
-            />
-          </div>
-
-          {message && (
-            <div
-              className="flex items-center justify-center bg-green-100 dark:bg-green-200 border border-green-400 dark:border-green-500 text-green-700 dark:text-green-800 px-4 py-3 rounded relative"
-              role="alert"
-            >
-              <svg
-                className="fill-current h-5 w-5 text-green-500 dark:text-green-600 mr-2"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-              >
-                <path d="M10 0C4.5 0 0 4.5 0 10s4.5 10 10 10 10-4.5 10-10S15.5 0 10 0zm1 15H9v-2h2v2zm0-4H9V5h2v6z" />
-              </svg>
-              <span className="block sm:inline">{message}</span>
-            </div>
-          )}
-          {error && <ErrorMessage message={error} />}
-
-          <SubmitButton accent={accent} text="Send Reset Code" />
-        </form>
+        &times;
+      </button>
+      <div className="text-center">
+        <EnvelopeIcon
+          className={`mx-auto h-12 w-auto text-${accent}-600 dark:text-${accent}-400`}
+        />
+        <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+          Reset Password
+        </h2>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          Enter your email to receive a password reset link
+        </p>
       </div>
+      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <div className="space-y-4">
+          <InputField
+            id="email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(value) => {
+              setEmail(value);
+              validateEmail(value);
+            }}
+            icon={
+              <EnvelopeIcon
+                className={`h-5 w-5 text-${accent}-500 dark:text-${accent}-400`}
+                aria-hidden="true"
+              />
+            }
+            accent={accent}
+            error={emailError}
+            autoComplete="email"
+          />
+        </div>
+
+        {message && (
+          <div
+            className="flex items-center justify-center bg-green-100 dark:bg-green-200 border border-green-400 dark:border-green-500 text-green-700 dark:text-green-800 px-4 py-3 rounded relative"
+            role="alert"
+          >
+            <svg
+              className="fill-current h-5 w-5 text-green-500 dark:text-green-600 mr-2"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M10 0C4.5 0 0 4.5 0 10s4.5 10 10 10 10-4.5 10-10S15.5 0 10 0zm1 15H9v-2h2v2zm0-4H9V5h2v6z" />
+            </svg>
+            <span className="block sm:inline">{message}</span>
+          </div>
+        )}
+        {error && <ErrorMessage message={error} />}
+
+        <SubmitButton accent={accent} text="Send Reset Link" />
+      </form>
+      <p className="text-center">
+        Remember your password?{" "}
+        <button
+          type="button"
+          className={`font-medium text-${accent}-600 hover:text-${accent}-500 dark:text-${accent}-400 dark:hover:text-${accent}-300`}
+          onClick={onSwitchToLogin}
+        >
+          Sign in here
+        </button>
+      </p>
     </div>
   );
 };
+
+export default ResetRequestForm;

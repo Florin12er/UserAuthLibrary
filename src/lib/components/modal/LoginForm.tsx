@@ -1,4 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { InputField } from "../parts/InputField";
+import { ErrorMessage } from "../parts/ErrorMessage";
+import { SubmitButton } from "../parts/SubmitButton";
+import { EnvelopeIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import { GoogleLoginButton } from "../buttons/GoogleButton";
 import { GitHubLoginButton } from "../buttons/GithubButton";
 
@@ -6,31 +11,88 @@ interface LoginFormProps {
   onLoginSuccess: (token: string) => void;
   onSwitchToRegister: () => void;
   onSwitchToResetRequest: () => void;
-  onClose: () => void; // Add this prop
+  onClose: () => void;
   accent: "indigo" | "blue" | "green" | "red" | "purple" | "zinc";
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "mid";
+  registrationSuccess?: boolean;
+  onRegistrationSuccessAcknowledged?: () => void;
   showGitHubLogin?: boolean;
   showGoogleLogin?: boolean;
+  apiUrl?: string;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({
   onLoginSuccess,
   onSwitchToRegister,
   onSwitchToResetRequest,
-  onClose, // Add this prop
+  onClose,
   accent,
   size = "md",
+  registrationSuccess = false,
+  onRegistrationSuccessAcknowledged,
   showGitHubLogin = false,
   showGoogleLogin = false,
+  apiUrl = "http://localhost:8080/login",
 }) => {
-  const [username, setUsername] = useState("");
+  const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [emailOrUsernameError, setEmailOrUsernameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (registrationSuccess) {
+      alert("Registration successful! Please log in.");
+      if (onRegistrationSuccessAcknowledged) {
+        onRegistrationSuccessAcknowledged();
+      }
+    }
+  }, [registrationSuccess, onRegistrationSuccessAcknowledged]);
+
+  const validateEmailOrUsername = (value: string) => {
+    if (value.length === 0) {
+      setEmailOrUsernameError("Email or Username is required");
+    } else {
+      setEmailOrUsernameError("");
+    }
+  };
+
+  const validatePassword = (value: string) => {
+    if (value.length === 0) {
+      setPasswordError("Password is required");
+    } else {
+      setPasswordError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate login success
-    const token = "fake-token";
-    onLoginSuccess(token);
+    setError("");
+    setIsLoading(true);
+
+    // Validate all fields
+    validateEmailOrUsername(emailOrUsername);
+    validatePassword(password);
+
+    // Check if there are any errors
+    if (emailOrUsernameError || passwordError) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await axios.post(apiUrl, {
+        email_or_username: emailOrUsername,
+        password,
+      });
+      onLoginSuccess(response.data.token);
+    } catch (err) {
+      setError("Invalid credentials or account is locked.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const sizeClasses = {
@@ -53,9 +115,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
         &times;
       </button>
       <div className="text-center">
-        <h2
-          className={`mt-6 text-3xl font-extrabold text-gray-900 dark:text-white`}
-        >
+        <LockClosedIcon
+          className={`mx-auto h-12 w-auto text-${accent}-600 dark:text-${accent}-400`}
+        />
+        <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
           Sign in to your account
         </h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
@@ -71,37 +134,50 @@ const LoginForm: React.FC<LoginFormProps> = ({
       </div>
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
         <div className="space-y-4">
-          <div>
-            <label className="block text-gray-700 dark:text-gray-300">
-              Username
-            </label>
-            <input
-              type="text"
-              className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300`}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 dark:text-gray-300">
-              Password
-            </label>
-            <input
-              type="password"
-              className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300`}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          <InputField
+            id="emailOrUsername"
+            label="Email or Username"
+            type="text"
+            value={emailOrUsername}
+            onChange={(value) => {
+              setEmailOrUsername(value);
+              validateEmailOrUsername(value);
+            }}
+            icon={
+              <EnvelopeIcon
+                className={`h-5 w-5 text-${accent}-500 dark:text-${accent}-400`}
+                aria-hidden="true"
+              />
+            }
+            accent={accent}
+            error={emailOrUsernameError}
+          />
+          <InputField
+            id="password"
+            label="Password"
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(value) => {
+              setPassword(value);
+              validatePassword(value);
+            }}
+            icon={
+              <LockClosedIcon
+                className={`h-5 w-5 text-${accent}-500 dark:text-${accent}-400`}
+                aria-hidden="true"
+              />
+            }
+            accent={accent}
+            showPasswordToggle
+            showPassword={showPassword}
+            onToggleShowPassword={() => setShowPassword(!showPassword)}
+            error={passwordError}
+          />
         </div>
-        <button
-          type="submit"
-          className={`w-full bg-${accent}-500 text-white py-2 rounded hover:bg-${accent}-600 dark:bg-${accent}-400 dark:hover:bg-${accent}-500`}
-        >
-          Login
-        </button>
+        {error && <ErrorMessage message={error} />}
+
+        <SubmitButton accent={accent} text="Sign in" isLoading={isLoading} />
+
         {(showGitHubLogin || showGoogleLogin) && (
           <div className="mt-6">
             <div className="relative">
